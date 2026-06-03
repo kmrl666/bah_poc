@@ -375,6 +375,47 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _showTransactionPushNotification() {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      behavior: SnackBarBehavior.floating,
+      margin: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+      duration: const Duration(seconds: 6),
+      backgroundColor: const Color(0xFF1F1F1F),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+      ),
+      content: InkWell(
+        onTap: () {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const TransactionApprovalScreen(),
+            ),
+          );
+        },
+        child: const Row(
+          children: [
+            Icon(
+              Icons.notifications_active_outlined,
+              color: Color(0xFFEBC340),
+            ),
+            SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Card transaction approval required. Tap to review.',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
 void _selectSearchResult(SearchResult result) {
   final selectedCategory = result.category;
 
@@ -550,6 +591,13 @@ class _WeekendDealsCarouselState extends State<WeekendDealsCarousel> {
     super.dispose();
   }
 
+  void _handleDealTap(PromoDeal deal) {
+    if (deal.title == 'Travel Rewards') {
+      final homeState = context.findAncestorStateOfType<_HomeScreenState>();
+      homeState?._showTransactionPushNotification();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -569,42 +617,46 @@ class _WeekendDealsCarouselState extends State<WeekendDealsCarousel> {
 
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 2),
-                child: Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(24),
-                    image: DecorationImage(
-                      image: NetworkImage(deal.imageUrl),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(24),
+                  onTap: () => _handleDealTap(deal),
                   child: Container(
-                    padding: const EdgeInsets.all(20),
+                    width: double.infinity,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(24),
-                      color: Colors.black45,
+                      image: DecorationImage(
+                        image: NetworkImage(deal.imageUrl),
+                        fit: BoxFit.cover,
+                      ),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(
-                          deal.title,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 19,
-                            fontWeight: FontWeight.w800,
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(24),
+                        color: Colors.black45,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Text(
+                            deal.title,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 19,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          deal.subtitle,
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 13,
+                          const SizedBox(height: 4),
+                          Text(
+                            deal.subtitle,
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 13,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -624,9 +676,7 @@ class _WeekendDealsCarouselState extends State<WeekendDealsCarousel> {
               width: isActive ? 18 : 7,
               height: 7,
               decoration: BoxDecoration(
-                color: isActive
-                    ? const Color(0xFF6F084E)
-                    : Colors.black26,
+                color: isActive ? const Color(0xFF6F084E) : Colors.black26,
                 borderRadius: BorderRadius.circular(99),
               ),
             );
@@ -1537,6 +1587,299 @@ class ChatBubble extends StatelessWidget {
           style: TextStyle(
             color: isMe ? Colors.white : Colors.black87,
             fontSize: 14,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class TransactionApprovalScreen extends StatelessWidget {
+  const TransactionApprovalScreen({super.key});
+
+  void _approve(BuildContext context) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const FakeCameraVerificationScreen(),
+      ),
+    );
+  }
+
+  void _reject(BuildContext context) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const TransactionResultScreen(
+          approved: false,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF4F4F6),
+      appBar: AppBar(
+        title: const Text('Transaction Approval'),
+        backgroundColor: const Color(0xFFF4F4F6),
+      ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 430),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              children: [
+                const SizedBox(height: 40),
+                Container(
+                  width: 82,
+                  height: 82,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF6F084E).withOpacity(0.10),
+                    borderRadius: BorderRadius.circular(26),
+                  ),
+                  child: const Icon(
+                    Icons.credit_card,
+                    color: Color(0xFF6F084E),
+                    size: 42,
+                  ),
+                ),
+                const SizedBox(height: 28),
+                const Text(
+                  'Approve Transaction?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF6F084E),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'A transaction was made using your card/account. Please review before approving.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.black54),
+                ),
+                const SizedBox(height: 32),
+                _TransactionDetailRow(label: 'Merchant', value: 'Travel Rewards'),
+                _TransactionDetailRow(label: 'Amount', value: 'BND 188.00'),
+                _TransactionDetailRow(label: 'Card', value: '**** 4821'),
+                _TransactionDetailRow(label: 'Location', value: 'Bandar Seri Begawan'),
+                const Spacer(),
+                SizedBox(
+                  width: double.infinity,
+                  height: 54,
+                  child: FilledButton(
+                    onPressed: () => _approve(context),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFF6F084E),
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text('Approve'),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  height: 54,
+                  child: OutlinedButton(
+                    onPressed: () => _reject(context),
+                    child: const Text('Reject'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TransactionDetailRow extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _TransactionDetailRow({
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Row(
+        children: [
+          Text(
+            label,
+            style: const TextStyle(color: Colors.black54),
+          ),
+          const Spacer(),
+          Text(
+            value,
+            style: const TextStyle(fontWeight: FontWeight.w800),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class FakeCameraVerificationScreen extends StatefulWidget {
+  const FakeCameraVerificationScreen({super.key});
+
+  @override
+  State<FakeCameraVerificationScreen> createState() =>
+      _FakeCameraVerificationScreenState();
+}
+
+class _FakeCameraVerificationScreenState
+    extends State<FakeCameraVerificationScreen> {
+  bool verifying = true;
+
+  @override
+  void initState() {
+    super.initState();
+
+    Future.delayed(const Duration(seconds: 3), () {
+      if (!mounted) return;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const TransactionResultScreen(
+            approved: true,
+          ),
+        ),
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          const Center(
+            child: Icon(
+              Icons.face_retouching_natural,
+              color: Colors.white54,
+              size: 120,
+            ),
+          ),
+          Center(
+            child: Container(
+              width: 240,
+              height: 320,
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: const Color(0xFFEBC340),
+                  width: 3,
+                ),
+                borderRadius: BorderRadius.circular(32),
+              ),
+            ),
+          ),
+          const Positioned(
+            bottom: 80,
+            left: 24,
+            right: 24,
+            child: Column(
+              children: [
+                CircularProgressIndicator(
+                  color: Color(0xFFEBC340),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Verifying your identity...',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class TransactionResultScreen extends StatelessWidget {
+  final bool approved;
+
+  const TransactionResultScreen({
+    super.key,
+    required this.approved,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = approved ? const Color(0xFF1F9D55) : const Color(0xFFB42318);
+    final icon = approved ? Icons.check_circle_outline : Icons.cancel_outlined;
+    final title = approved ? 'Transaction Approved' : 'Payment Denied';
+    final message = approved
+        ? 'Your transaction has been verified and approved.'
+        : 'The transaction has been rejected and payment was denied.';
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF4F4F6),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 430),
+          child: Padding(
+            padding: const EdgeInsets.all(28),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  color: color,
+                  size: 96,
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.black54),
+                ),
+                const SizedBox(height: 40),
+                SizedBox(
+                  width: double.infinity,
+                  height: 54,
+                  child: FilledButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFF6F084E),
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text('Back to Home'),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
