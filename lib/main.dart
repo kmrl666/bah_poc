@@ -527,7 +527,7 @@ void _selectSearchResult(SearchResult result) {
         ),
       ),
     ),
-  ],
+  const DraggableFab(),],
 ),
     );
   }
@@ -1183,6 +1183,363 @@ class _PrayerTimeCardState extends State<PrayerTimeCard> {
                 ),
               ],
             ),
+    );
+  }
+}
+
+class DraggableFab extends StatefulWidget {
+  const DraggableFab({super.key});
+
+  @override
+  State<DraggableFab> createState() => _DraggableFabState();
+}
+
+class _DraggableFabState extends State<DraggableFab> {
+
+    Offset position = Offset.zero;
+  bool initialized = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    const fabSize = 62.0;
+
+  if (!initialized) {
+    position = Offset(
+      screenSize.width - fabSize - 16,
+      180,
+    );
+    initialized = true;
+  }
+  
+    return Positioned(
+      left: position.dx,
+      top: position.dy,
+      child: GestureDetector(
+        onPanUpdate: (details) {
+          setState(() {
+            position = Offset(
+              (position.dx + details.delta.dx).clamp(0, screenSize.width - fabSize),
+              (position.dy + details.delta.dy).clamp(0, screenSize.height - fabSize),
+            );
+          });
+        },
+        onPanEnd: (_) {
+          setState(() {
+            final stickToRight = position.dx > screenSize.width / 2;
+
+            position = Offset(
+              stickToRight ? screenSize.width - fabSize - 12 : 12,
+              position.dy,
+            );
+          });
+        },
+child: Material(
+  color: Colors.transparent,
+  child: InkWell(
+    borderRadius: BorderRadius.circular(999),
+    onTap: () {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (_) => const MockChatSheet(),
+  );
+},
+    child: Container(
+      width: 62,
+      height: 62,
+      decoration: BoxDecoration(
+        color: const Color(0xFF6F084E),
+        borderRadius: BorderRadius.circular(999),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.18),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: const Icon(
+        Icons.chat_bubble_outline,
+        color: Colors.white,
+        size: 30,
+      ),
+    ),
+  ),
+),
+      ),
+    );
+  }
+}
+
+class MockChatSheet extends StatefulWidget {
+  const MockChatSheet({super.key});
+
+  @override
+  State<MockChatSheet> createState() => _MockChatSheetState();
+}
+
+class _MockChatSheetState extends State<MockChatSheet> {
+  final TextEditingController messageController = TextEditingController();
+
+  final List<ChatMessage> messages = [
+    ChatMessage(
+      text: 'Hi Kamarul, welcome to BAH support 👋',
+      isMe: false,
+    ),
+    ChatMessage(
+      text: 'How can I help you today?',
+      isMe: false,
+    ),
+  ];
+
+  void _sendMessage() {
+    final text = messageController.text.trim();
+
+    if (text.isEmpty) return;
+
+    setState(() {
+      messages.add(
+        ChatMessage(
+          text: text,
+          isMe: true,
+        ),
+      );
+    });
+
+    messageController.clear();
+
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (!mounted) return;
+
+      setState(() {
+        messages.add(
+          ChatMessage(
+            text: 'Thanks. A support person will review this shortly.',
+            isMe: false,
+          ),
+        );
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    messageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: bottomInset),
+      child: Container(
+        height: MediaQuery.of(context).size.height * 0.82,
+        decoration: const BoxDecoration(
+          color: Color(0xFFF4F4F6),
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(28),
+          ),
+        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 10),
+
+            Container(
+              width: 44,
+              height: 5,
+              decoration: BoxDecoration(
+                color: Colors.black26,
+                borderRadius: BorderRadius.circular(99),
+              ),
+            ),
+
+            const SizedBox(height: 14),
+
+            ListTile(
+              leading: CircleAvatar(
+                backgroundColor: const Color(0xFF6F084E).withOpacity(0.10),
+                child: const Icon(
+                  Icons.support_agent,
+                  color: Color(0xFF6F084E),
+                ),
+              ),
+              title: const Text(
+                'BAH Support',
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              subtitle: const Text('Typically replies in a few minutes'),
+              trailing: IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+
+            const Divider(height: 1),
+
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  const Center(
+                    child: TodayDivider(),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  ...messages.map((message) {
+                    return ChatBubble(message: message);
+                  }),
+                ],
+              ),
+            ),
+
+            Container(
+              padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                border: Border(
+                  top: BorderSide(color: Color(0xFFE5E5E5)),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: messageController,
+                      minLines: 1,
+                      maxLines: 4,
+                      decoration: InputDecoration(
+                        hintText: 'Type a message...',
+                        filled: true,
+                        fillColor: const Color(0xFFF4F4F6),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(width: 10),
+
+                  InkWell(
+                    onTap: _sendMessage,
+                    borderRadius: BorderRadius.circular(999),
+                    child: Container(
+                      width: 46,
+                      height: 46,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF6F084E),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.send,
+                        color: Colors.white,
+                        size: 21,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ChatMessage {
+  final String text;
+  final bool isMe;
+
+  ChatMessage({
+    required this.text,
+    required this.isMe,
+  });
+}
+
+class TodayDivider extends StatelessWidget {
+  const TodayDivider({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 6,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: const Text(
+        'Today',
+        style: TextStyle(
+          fontSize: 12,
+          color: Colors.black54,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
+class ChatBubble extends StatelessWidget {
+  final ChatMessage message;
+
+  const ChatBubble({
+    super.key,
+    required this.message,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isMe = message.isMe;
+
+    return Align(
+      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 290),
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 11,
+        ),
+        decoration: BoxDecoration(
+          color: isMe ? const Color(0xFF6F084E) : Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: const Radius.circular(18),
+            topRight: const Radius.circular(18),
+            bottomLeft: Radius.circular(isMe ? 18 : 4),
+            bottomRight: Radius.circular(isMe ? 4 : 18),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Text(
+          message.text,
+          style: TextStyle(
+            color: isMe ? Colors.white : Colors.black87,
+            fontSize: 14,
+          ),
+        ),
+      ),
     );
   }
 }
