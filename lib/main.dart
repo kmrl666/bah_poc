@@ -131,6 +131,7 @@ class LandingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: const PoweredByFooter(),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 430),
@@ -235,6 +236,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F4F6),
+        bottomNavigationBar: const PoweredByFooter(),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 430),
@@ -437,6 +439,7 @@ void _selectSearchResult(SearchResult result) {
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: AppDrawer(onSelected: _openCategory),
+        bottomNavigationBar: const PoweredByFooter(),
       appBar: AppBar(
         backgroundColor: const Color(0xFFF4F4F6),
         elevation: 0,
@@ -444,6 +447,8 @@ void _selectSearchResult(SearchResult result) {
           color: Color(0xFF6F084E),
         ),
       ),
+
+      
  body: Stack(
   children: [
     Positioned(
@@ -1817,6 +1822,26 @@ class _FakeCameraVerificationScreenState
   }
 }
 
+class PoweredByFooter extends StatelessWidget {
+  const PoweredByFooter({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: const Text(
+        'Powered by BIBD',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 11,
+          color: Colors.black38,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+}
+
 class TransactionResultScreen extends StatelessWidget {
   final bool approved;
 
@@ -1886,3 +1911,4 @@ class TransactionResultScreen extends StatelessWidget {
     );
   }
 }
+
